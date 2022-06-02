@@ -7,25 +7,19 @@ namespace USUARIOSAPI.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-       private static List<Usuarios> usuarios = new List<Usuarios>
-            {
-                new Usuarios{
-                    Id = 1,
-                    Nombre="Dennis",
-                    Apellidos = "Rodriguez Mora",
-                    Usuario = "Dejeromo",
-                    Clave="123456",
-                    Direccion="Alto Murillo",
-                    Telefono="83655072",
-                    TipodeUsuario="Administrador"
-                }
-            };
+       
+        private readonly DataContext _context;
+
+        public UsuariosController(DataContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
-        public async Task<ActionResult<List<Usuarios>>> Get()
+        public async Task<ActionResult<List<Usuarios>>> GetUsuario()
         {
             
-            return Ok(usuarios);
+            return Ok(await _context.Usuarios.ToListAsync());
         }
 
       
@@ -33,35 +27,39 @@ namespace USUARIOSAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<List<Usuarios>>> AddUsuario(Usuarios user)
         {
-            usuarios.Add(user);
-            return Ok(usuarios);
+           _context.Usuarios.Add(user);
+            await _context.SaveChangesAsync();
+            return Ok(await _context.Usuarios.ToListAsync());
         }
 
         [HttpPut]
         public async Task<ActionResult<List<Usuarios>>> UpdateUsuario(Usuarios request )
         {
-            var user = usuarios.Find(u => u.Id == request.Id);
-            if (user == null)
-                return BadRequest("Usuario no encontrado");    
-           
-            user.Nombre = request.Nombre;
-            user.Apellidos = request.Apellidos;
-            user.Usuario = request.Usuario;
-            user.Clave = request.Clave;
-            user.Direccion = request.Direccion;
-            user.Telefono = request.Telefono;
-            user.TipodeUsuario = request.TipodeUsuario;
-            return Ok(usuarios);
+            var dbusuarios = await _context.Usuarios.FindAsync(request.Id);
+            if (dbusuarios == null)
+                return BadRequest("Usuario no encontrado");
+
+            dbusuarios.Nombre = request.Nombre;
+            dbusuarios.Apellidos = request.Apellidos;
+            dbusuarios.Usuario = request.Usuario;
+            dbusuarios.Clave = request.Clave;
+            dbusuarios.Direccion = request.Direccion;
+            dbusuarios.Telefono = request.Telefono;
+            dbusuarios.TipodeUsuario = request.TipodeUsuario;
+
+            await _context.SaveChangesAsync();
+            return Ok(await _context.Usuarios.ToListAsync());
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<List<Usuarios>>> Delete(int id)
         {
-            var user = usuarios.Find(u => u.Id == id);
-            if (user == null)
+            var dbusuarios = await _context.Usuarios.FindAsync(id);
+            if (dbusuarios == null)
                 return BadRequest("Usuario no encontrado");
-            usuarios.Remove(user);
-            return Ok(usuarios);
+           _context.Usuarios.Remove(dbusuarios);
+            await _context.SaveChangesAsync();
+            return Ok(await _context.Usuarios.ToListAsync());
         }
          
 
